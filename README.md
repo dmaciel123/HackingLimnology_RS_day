@@ -29,8 +29,8 @@ During the workshop, we will present the necessary packages. However, we encoura
 
 # Required packages
 
-packages = c('data.table','dplyr','terra','mapview','httr','Metrics','geodrawr','
-             svDialogs','rstac','wesanderson','PerformanceAnalytics', 'remotes',
+packages = c('data.table','dplyr','terra','mapview','httr','Metrics','geodrawr',
+             'svDialogs','rstac','wesanderson','PerformanceAnalytics', 'remotes',
              'ggpmisc','gdalcubes','Metrics','randomForest','rasterVis','RColorBrewer')
 
 install.packages(packages)
@@ -49,6 +49,7 @@ require(bandSimulation)
 ```
 
 
+
 # GLORIA Dataset
 
 The GLORIA dataset is a compilation of remote sensing reflectance (Rrs) and water quality data for global waters, with dedicated data for freshwater ecosystems. It is free and available for everyone, and covers most part of the globe with more than 7,000 samples (Figure 01)
@@ -56,9 +57,9 @@ The GLORIA dataset is a compilation of remote sensing reflectance (Rrs) and wate
 Let's remember that Remote Sensing Reflectance is the ratio between water leaving radiance and downwelling irradiance, compensated by the sky radiance and corrected by glint effects (Equation 01).
 
 
-$\ R_{rs} = (L_t - (L_{sky}*\rho))/E_s$
 
 For more information, users are refered to the publication [(Lehmann et al. 2023)](https://www.nature.com/articles/s41597-023-01973-y), the dataset in [PANGAEA](http://https://doi.pangaea.de/10.1594/PANGAEA.948492) and the [Nature Earth and Environmment blog post](http://https://earthenvironmentcommunity.nature.com/posts/gloria-challenges-in-developing-a-globally-representative-hyperspectral-in-situ-dataset-for-the-remote-sensing-of-water-resources)
+
 
 
 ![Figure 01](https://earthenvironmentcommunity.nature.com/cdn-cgi/image/metadata=copyright,fit=scale-down,format=auto,sharpen=1,quality=95/https://images.zapnito.com/uploads/hiCMOprnTtSCTJNv78gu_locations.jpg)
@@ -68,7 +69,6 @@ For more information, users are refered to the publication [(Lehmann et al. 2023
 
 When we simulate a satellite band, we are compensating for the differences in detector sensibility to each wavelength. The Figure below shows differences in the spectral response function for Sentinel-2A/MSI, Landsat-8/OLI and Landsat-7/ETM+. You can note that relative spectral response values close to "1" indicates that the detector can measure (or detect) all the radiance in this wavelength.
 
-$/R_{rs} =  \frac{\int_{n}^{m} SRF(\lambda) R_{rs} dx}{\int_{n}^{m} SRF(\lambda)}$
 
 A sensor band is composed by an interval of these wavelengths and then, the simulated band is the integral the R[rs] considering the Relative Spectral Response curve, or Equation 02.
 
