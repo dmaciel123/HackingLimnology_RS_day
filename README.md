@@ -58,19 +58,22 @@ Let's remember that Remote Sensing Reflectance is the ratio between water leavin
 
 $\ R_{rs} = (L_t - (L_{sky}*\rho))/E_s$
 
-![Figure 01](https://earthenvironmentcommunity.nature.com/cdn-cgi/image/metadata=copyright,fit=scale-down,format=auto,sharpen=1,quality=95/https://images.zapnito.com/uploads/hiCMOprnTtSCTJNv78gu_locations.jpg)
-
 For more information, users are refered to the publication [(Lehmann et al. 2023)](https://www.nature.com/articles/s41597-023-01973-y), the dataset in [PANGAEA](http://https://doi.pangaea.de/10.1594/PANGAEA.948492) and the [Nature Earth and Environmment blog post](http://https://earthenvironmentcommunity.nature.com/posts/gloria-challenges-in-developing-a-globally-representative-hyperspectral-in-situ-dataset-for-the-remote-sensing-of-water-resources)
+
+
+![Figure 01](https://earthenvironmentcommunity.nature.com/cdn-cgi/image/metadata=copyright,fit=scale-down,format=auto,sharpen=1,quality=95/https://images.zapnito.com/uploads/hiCMOprnTtSCTJNv78gu_locations.jpg)
 
 
 # Band simulation
 
-When we simulate a satellite band, we are compensating for the differences in detector sensibility to each wavelength. The Figure below shows differences in the spectral response function for Sentinel-2A/MSI, Landsat-8/OLI and Landsat-7/ETM+. You can note that relative spectral response values close to "1" indicates that the detector can measure (or detect) all the radiance in this wavelength. A sensor band is composed by an interval of these wavelengths and then, the simulated band is the integral the R[rs] considering the Relative Spectral Response curve, or Equation 02.
+When we simulate a satellite band, we are compensating for the differences in detector sensibility to each wavelength. The Figure below shows differences in the spectral response function for Sentinel-2A/MSI, Landsat-8/OLI and Landsat-7/ETM+. You can note that relative spectral response values close to "1" indicates that the detector can measure (or detect) all the radiance in this wavelength.
 
+$/R_{rs} =  \frac{\int_{n}^{m} SRF(\lambda) R_{rs} dx}{\int_{n}^{m} SRF(\lambda)}$
+
+A sensor band is composed by an interval of these wavelengths and then, the simulated band is the integral the R[rs] considering the Relative Spectral Response curve, or Equation 02.
 
 ![Figure 02](https://upload.wikimedia.org/wikipedia/commons/7/7d/Spectral_responses_of_Landsat_7_ETM%2B%2C_Landsat_8_OLI_and_Sentinel_2_MSI_in_the_visible_and_near_infrared.png)
 
-$/R_{rs} =  \frac{\int_{n}^{m} SRF(\lambda) R_{rs} dx}{\int_{n}^{m} SRF(\lambda)}$
 
 
 # Other intallations and reccomendations
