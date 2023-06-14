@@ -1,0 +1,305 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+```{r}
+
+# Water quality parameters retrieval using Remote Sensing data - Part 01
+
+
+#The use of remote sensing data to predict water quality variables that are optically active (i.e., interacts with light) has been applied to ocean and coastal waters for ~50 years. Thanks to the new generation of sensors with adequate spectral, radiometric and spatial resolution (i.e., Landsat, Sentinel-2, etc) in the last 15 years the community started to use RS to freshwater studies. 
+
+
+#Remote sensing allow us to predict some WQ parameters: Suspended sediments, chlorophyl-a, phycocianin, dissolved organic matter, carbon, secchi disk depth, turbidity...It is an important source of data that could help biologists, limnologists, and all the aquatic science community into understanding of water pattern. 
+
+
+
+#In this Notebook, we gonna learn how to use Remote Sensing data to predict water quality variables (Chl-a and Suspended Sediments). For that, we gonna use a hyperspectral dataset for global freshwater (GLORIA) to simulated Landsat and Sentinel-2 bands (i.e., makes the in situ data the "same" as satellite see). After that, we gonna do some exploratory analysis and filters to remove outliers and develop a empirical and Machine Learning algorithm (Random Forest) to predict Chl-a and TSS for satellite images. 
+
+#The processing flow is divided into three topics:
+
+#1. Installing the packages, downloading the data, simulate the bands and removing outliers (pre-processing step)
+#2. Model development (train, validation, and full model development)
+#3. Model application: application of the algorithms to satellite data using STAC and Google Earth Engine 
+```
+
+
+
+
+
+```{r}
+
+#install.packages(c('data.table',
+#                        'dplyr',
+#                        'rstac',
+#                        'terra',
+#                        'raster',
+#                        'mapview',
+#                        'Metrics',
+#                        'geodrawr',
+#                        'svDialogs',
+#                         'PerformanceAnalytics',
+#                        'rstac',
+#                        'wesanderson'))
+
+
+require(data.table)
+require(dplyr)
+require(rstac)
+require(terra)
+require(mapview)
+require(httr)
+require(Metrics)
+require(geodrawr)
+require(svDialogs)
+require(rstac)
+require(wesanderson)
+require(PerformanceAnalytics)
+
+
+
+```
+# Downloading GLORIA data
+
+The GLORIA dataset is a compilation of remote sensing and water quality data for global waters, with dedicated data for freshwater ecosystems. It is free and available for everyone, and covers most part of the globe with more than 7,000 samples (Figure 01)
+
+![Figure 01](https://earthenvironmentcommunity.nature.com/cdn-cgi/image/metadata=copyright,fit=scale-down,format=auto,sharpen=1,quality=95/https://images.zapnito.com/uploads/hiCMOprnTtSCTJNv78gu_locations.jpg)
+
+
+For more information, users are refered to the publication [(Lehmann et al. 2023)](https://www.nature.com/articles/s41597-023-01973-y), the dataset in [PANGAEA](http://https://doi.pangaea.de/10.1594/PANGAEA.948492) and the [Nature Earth and Environmment blog post](http://https://earthenvironmentcommunity.nature.com/posts/gloria-challenges-in-developing-a-globally-representative-hyperspectral-in-situ-dataset-for-the-remote-sensing-of-water-resources)
+
+In the following codes, we are gonna:
+
+1. Create the necessary folders
+2. Download the data from PANGAEA
+3. Extract it in R
+
+
+```{r}
+
+# Let's download the GLORIA to a empty folder called "Data" in our project
+
+## First, create directories
+
+dir.create('Data')
+dir.create("Outputs")
+dir.create("Scripts")
+
+## URL
+URL = 'https://download.pangaea.de/dataset/948492/files/GLORIA-2022.zip'
+
+# Before download, let`s set timeout to 200s (sometimes PANGAEA download is slow)
+
+options(timeout=300)
+
+# If the directory with files doesn't exist, let's download GLORIA data.
+
+if(dir.exists('Data/GLORIA_2022/') == FALSE) {
+  
+      # Download
+      download.file(URL, 'Data/GLORIA.zip')
+      
+      # Extract
+      unzip(zipfile = 'Data/GLORIA.zip', exdir = 'Data')
+}
+
+
+
+
+```
+
+After downloading the data, we can explore it. It is composed of various sheets, such as:
+
+1. Remote sensing reflectance 
+2. Water quality variables and other auxiliary data
+3. Radiometric quantities (e.g., water leaving radiance, sky radiance)
+4. Quality control flags (e.g., suspected spectra are flagged and could be removed by the user)
+5. Uncertantity table (mean and standard deviation of provided data)
+
+We reccomend the user to open the table in Excel or Google Docs and explore it. In this exercise, we gonna use the following tables:
+
+1. GLORIA_meta_and_lab.csv
+2. GLORIA_Rrs.csv
+
+Let's remember that Remote Sensing Reflectance is the ratio between water leaving radiance and downwelling irradiance, compensated by the sky radiance and corrected by glint effects (Equation 01).
+
+
+\begin{equation}
+R_{rs} = (L_t - (L_{sky}*\rho))/E_s
+\end{equation}
+
+
+These tables contain all the necessary variables we need to produce the desired algorithms. Let`s now open and explore it. You gonna see that the collumn GLORIA_ID contains the ID of each unique station. This collumn will be used in the next steps to merge both tables.
+
+```{r}
+
+
+## See the dataset
+
+# META and Lab data
+
+meta_and_lab = fread("Data/GLORIA_2022/GLORIA_meta_and_lab.csv")
+head(meta_and_lab)
+
+
+```
+
+```{r}
+
+# Rrs data
+
+rrs = fread("Data/GLORIA_2022/GLORIA_Rrs.csv")
+head(rrs)
+
+```
+
+# Simulation of satellite bands
+
+
+However, this is a hiperspectral dataset. If we want to develop RS models, we will need to simulate (i.e. integrate based on the Relative Spectral Response) each band of the desiered sensor
+
+To do that, we gonna use the bandSimulation package available in GitHub. 
+
+```{r}
+
+devtools::install_github("dmaciel123/BandSimulation")
+
+require(bandSimulation)
+
+```
+
+```{r}
+
+## Simulation for Sentinel-2 MSI sensor 
+
+
+spectra_formated = select(rrs, paste("Rrs_", 400:900, sep = '')) %>% t()
+
+head(spectra_formated[1:10,1:10])
+
+MSI_sim = msi_simulation(spectra = spectra_formated, 
+                         point_name = rrs$GLORIA_ID)
+
+
+#It simulates for Sentinel-2A and Sentinel-2B and gives the results in a list.
+# Let's select only Sentinel-2A.
+
+MSI = MSI_sim$s2a[,-1] %>% t() %>% data.frame()
+
+head(MSI[,1:9])
+
+
+# Add names to a collumn
+MSI$GLORIA_ID = row.names(MSI)
+
+#Check final 
+
+head(MSI[,1:9])
+
+
+
+
+```
+
+# Checking the results and understanding what is "Band Simulation" 
+
+When we simulate a satellite band, we are compensating for the differences in detector sensibility to each wavelength. The Figure below shows differences in the spectral response function for Sentinel-2A/MSI, Landsat-8/OLI and Landsat-7/ETM+. You can note that relative spectral response values close to "1" indicates that the detector can measure (or detect) all the radiance in this wavelength. A sensor band is composed by an interval of these wavelengths and then, the simulated band is the integral the R[rs] considering the Relative Spectral Response curve, or Equation 02.
+
+
+![Figure 02](https://upload.wikimedia.org/wikipedia/commons/7/7d/Spectral_responses_of_Landsat_7_ETM%2B%2C_Landsat_8_OLI_and_Sentinel_2_MSI_in_the_visible_and_near_infrared.png)
+
+\begin{equation}
+R_{rs} =  \frac{\int_{n}^{m} SRF(\lambda) R_{rs} dx}{\int_{n}^{m} SRF(\lambda)} 
+\end{equation}
+
+```{r}
+# Change band names
+
+names(MSI) = c('x440', "x490", 'x560', 'x660', "x705", 'x740', 'x780', 'x850', 'x865', "GLORIA_ID")
+
+ROW = 150
+
+# Example
+
+matplot(t(select(rrs, paste("Rrs_", 400:900, sep = ''))[ROW,]), ylim = c(0,0.015),
+        x= c(400:900), pch = 20, xlab = '', ylab = '')
+
+par(new=T)
+
+matplot(t(MSI[ROW,-10]), x= c(440,490,560,660,705,740,780,850,860), pch = 20,
+        ylim = c(0,0.015), xlim = c(400,900), col = 'red', cex = 2, xlab = 'Wavelength (nm)', 
+        ylab = 'Rrs (sr-1)')
+
+
+```
+
+
+
+```{r}
+
+## Merge with water quality, lat long (By GLORIA_ID)
+
+merged = merge(select(meta_and_lab, c('GLORIA_ID', 'Chla', "TSS", "Latitude", "Longitude")),
+               MSI, by = "GLORIA_ID")
+
+head(merged)
+
+```
+
+# Exploring a little the geographical availability
+
+
+
+```{r}
+
+vector = vect(merged, 
+              geom = c('Longitude', 'Latitude'), 
+              "EPSG:4326")
+
+
+#mapview(sf::st_as_sf(vector),  zcol = 'TSS')
+
+```
+
+
+
+# Finalizing the exploratory analyze
+
+Before continuing and saving the simulated data, we will need to remove No-data values, perform some filter process (e.g., remove very low values of Chl-a) and also calculate some indexes that could help into modeling process. 
+
+Let's do that.
+
+
+```{r}
+# We want to model TSS and Chla concentration based on RF
+
+merged = merged[is.na(merged$Chla) == FALSE, ]
+merged = merged[is.na(merged$TSS) == FALSE, ]
+
+head(merged)
+
+
+## Index calculation:
+
+merged$NDCI = (merged$x705-merged$x660)/(merged$x705+merged$x660)+1
+merged$Blue_red = (merged$x490-merged$x660)/(merged$x490+merged$x660)+1
+merged$green_blue = (merged$x560-merged$x490)/(merged$x560+merged$x490)+1
+merged$nir_red = (merged$x740-merged$x660)/(merged$x740+merged$x660)+1
+
+
+# Check dimension
+
+dim(merged)
+
+```
+
+Performing some exploratory analyzes.
+
+
+```{r}
+
+#chart.Correlation( merged[,-1] )
+
+
+```
+
