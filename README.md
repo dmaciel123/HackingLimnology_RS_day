@@ -55,9 +55,8 @@ The GLORIA dataset is a compilation of remote sensing reflectance (Rrs) and wate
 
 Let's remember that Remote Sensing Reflectance is the ratio between water leaving radiance and downwelling irradiance, compensated by the sky radiance and corrected by glint effects (Equation 01).
 
-\begin{equation}
-R_{rs} = (L_t - (L_{sky}*\rho))/E_s
-\end{equation}
+
+$\ R_{rs} = (L_t - (L_{sky}*\rho))/E_s$
 
 ![Figure 01](https://earthenvironmentcommunity.nature.com/cdn-cgi/image/metadata=copyright,fit=scale-down,format=auto,sharpen=1,quality=95/https://images.zapnito.com/uploads/hiCMOprnTtSCTJNv78gu_locations.jpg)
 
@@ -71,9 +70,7 @@ When we simulate a satellite band, we are compensating for the differences in de
 
 ![Figure 02](https://upload.wikimedia.org/wikipedia/commons/7/7d/Spectral_responses_of_Landsat_7_ETM%2B%2C_Landsat_8_OLI_and_Sentinel_2_MSI_in_the_visible_and_near_infrared.png)
 
-\begin{equation}
-R_{rs} =  \frac{\int_{n}^{m} SRF(\lambda) R_{rs} dx}{\int_{n}^{m} SRF(\lambda)} 
-\end{equation}
+$/R_{rs} =  \frac{\int_{n}^{m} SRF(\lambda) R_{rs} dx}{\int_{n}^{m} SRF(\lambda)}$
 
 
 # Other intallations and reccomendations
