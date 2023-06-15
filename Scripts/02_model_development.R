@@ -14,7 +14,7 @@ data = fread("Outputs/sentinel2_simulated_filtered.csv")
 
 
 
-## Two models: Chl-a and TSS
+## Two models: Chl-a Random Forest and NDCI empirical
 
 
 # Steps:
@@ -60,7 +60,7 @@ abline(0,1)
 ###### Create a random forest algorithm for Chl-a
 
 
-chla.rf = randomForest(Chla~ x490+x560+x660+x705+x850+NDCI, data = train, 
+chla.rf = randomForest(Chla~ x490+x560+x660+x705+NDCI, data = train, 
                        ntree = 200, mtry = 4, importance = T)
 
 varImpPlot(chla.rf)
@@ -69,6 +69,7 @@ valid$RF_CHLA = (predict(chla.rf, valid))
 
 plot(valid$Chla, valid$RF_CHLA ,pch = 20, xlab = "Measured Chla",
      ylab = "Predicted Chla", xlim = c(0,400), ylim = c(0,400))
+
 abline(0,1)
 
 # Lets compare both models
@@ -82,10 +83,10 @@ stat_calc(real = valid$Chla, predicted = valid$RF_CHLA)
 
 ## Calculate empirical and RF final models
 
-RF_FINAL = randomForest(Chla~ x490+x560+x660+x705+x850+NDCI, data = data, 
+RF_FINAL = randomForest(Chla~ x490+x560+x660+x705+NDCI, data = data, 
              ntree = 200, mtry = 4, importance = T)
 
-EMP_FINAL = lm(log(Chla)~NDCI+I(NDCI^2), data = data)
+EMP_FINAL = lm(log(Chla)~log(NDCI), data = data)
 
 saveRDS(RF_FINAL, file = 'Outputs/rf_chla.R')
 saveRDS(EMP_FINAL, file = 'Outputs/emp_chla.R')

@@ -4,7 +4,6 @@
 
 require(data.table)
 require(dplyr)
-require(rstac)
 require(terra)
 require(mapview)
 require(httr)
@@ -15,7 +14,11 @@ require(rstac)
 require(wesanderson)
 require(PerformanceAnalytics)
 library(ggpmisc)
-
+require(gdalcubes)
+require(Metrics)
+require(randomForest)
+library(rasterVis)
+require(RColorBrewer)
 
 ## Configure the Project Directories 
 
@@ -146,7 +149,7 @@ merged = merged[(merged$TSS < 1000 & merged$TSS > 1), ]
 
 #Index calculations
 
-merged$NDCI = (merged$x705-merged$x660)/(merged$x705+merged$x660)
+merged$NDCI = (merged$x705-merged$x660)/(merged$x705+merged$x660)+1
 merged$Blue_red = (merged$x490-merged$x660)/(merged$x490+merged$x660)
 merged$green_blue = (merged$x560-merged$x490)/(merged$x560+merged$x490)
 merged$nir_red = (merged$x850-merged$x660)/(merged$x850+merged$x660)
@@ -160,23 +163,18 @@ dim(merged)
 
 summary(merged)
 
-chart.Correlation(select(merged, c("Chla", 
+chart.Correlation(log(select(merged, c("Chla", 
                                    'TSS', 
                                    "NDCI", 
                                    'Blue_red',
                                    'green_blue', 
-                                   'nir_red')))
-
-matplot(x = log(merged$NDCI+1), y = log(merged$Chla), xlab = "NDCI", 
-        ylab = 'Chl-a Concentration (ug/L)', pch = 20)
+                                   'nir_red'))))
 
 
 ggplot(merged, aes(x = log(NDCI+1), y = log(Chla))) +
   geom_point(color = 'black') +
-  #geom_line(aes(color = variable)) +
   scale_y_continuous(limits = c(-2,10)) +
   scale_x_continuous(limits = c(-2,1)) +
-
   theme_bw() + 
   labs(color='Mesoregioes') +
   stat_poly_line() +
@@ -195,20 +193,12 @@ ggplot(merged, aes(x = log(NDCI+1), y = log(Chla))) +
 
 
 
-
-
-
-
-
-
-
-
 vector = vect(merged, 
               geom = c('Longitude', 'Latitude'), 
               "EPSG:4326")
 
 
-mapview(sf::st_as_sf(vector),  zcol = 'TSS')
+mapview(sf::st_as_sf(vector),  zcol = 'Chla')
 
 
 ## Saving results
