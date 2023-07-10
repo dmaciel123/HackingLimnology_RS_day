@@ -11,6 +11,18 @@ The processing flow is divided into three topics:
 2. Model development (train, validation, and full model development)
 3. Model application: application of the algorithms to satellite data using STAC from Microsoft Planetary Computer.
 
+# What we are expecting to get as result?
+
+1. A Chlorophyll-a Random Forest and Empirical algorithm;
+2. A prediction of Chl-a concentration for a specific date
+3. A time-series of Chlorophyll-a concentration for Billings Reservoir, Sao Paulo, Brazil (Figure below). 
+
+
+![Figure 01](https://github.com/dmaciel123/HackingLimnology_RS_day/blob/main/animation.gif)
+
+
+
+
 # Required software 
 
 For running the scripts, we reccomend the attendes to install R and RSTUDIO. 
