@@ -49,9 +49,9 @@ print(it_obj)
 crop_pt = ext(315000, 360000,7350000, 7380000) 
 
 
-blue <- paste0("/vsicurl/", it_obj$features[[1]]$assets$B02$href) %>% rast() %>% crop(crop_pt)
-green <- paste0("/vsicurl/", it_obj$features[[1]]$assets$B03$href) %>% rast() %>% crop(crop_pt)
-red <- paste0("/vsicurl/", it_obj$features[[1]]$assets$B04$href) %>% rast() %>% crop(crop_pt)
+blue <- paste0("/vsicurl/", it_obj$features[[1]]$assets$B02$href) %>% rast() %>% terra::crop(crop_pt)
+green <- paste0("/vsicurl/", it_obj$features[[1]]$assets$B03$href) %>% rast() %>% terra::crop(crop_pt)
+red <- paste0("/vsicurl/", it_obj$features[[1]]$assets$B04$href) %>% rast() %>% terra::crop(crop_pt)
 
 
 # Plot to see if it ok
@@ -60,12 +60,12 @@ stack_img = c(blue, green, red)
 plotRGB(stack_img, r = 3, g = 2, b =1, stretch = 'lin')
 
 
-x705 <- paste0("/vsicurl/", it_obj$features[[1]]$assets$B05$href) %>% rast() %>% crop(crop_pt)
-x850 <- paste0("/vsicurl/", it_obj$features[[1]]$assets$B8A$href) %>% rast() %>% crop(crop_pt)
+x705 <- paste0("/vsicurl/", it_obj$features[[1]]$assets$B05$href) %>% rast() %>% terra::crop(crop_pt)
+x850 <- paste0("/vsicurl/", it_obj$features[[1]]$assets$B8A$href) %>% rast() %>% terra::crop(crop_pt)
 
 # Water Mask 
 
-SCL <- paste0("/vsicurl/", it_obj$features[[1]]$assets$SCL$href) %>% rast() %>% crop(crop_pt)
+SCL <- paste0("/vsicurl/", it_obj$features[[1]]$assets$SCL$href) %>% rast() %>% terra::crop(crop_pt)
 SCL[SCL[[1]] != 6] = NA
 
 # Reprojecting nir/swir to match the 20m spatial res

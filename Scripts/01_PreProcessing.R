@@ -112,18 +112,24 @@ head(MSI[,1:9])
 
 names(MSI) = c('x440', "x490", 'x560', 'x660', "x705", 'x740', 'x780', 'x850', 'x865', "GLORIA_ID")
 
-ROW = 105
+
+selection = filter(rrs, GLORIA_ID == 'GID_207')
+selection.s = filter(MSI, GLORIA_ID == 'GID_207')
+meta.s = filter(meta_and_lab, GLORIA_ID == 'GID_207')
 
 ##### Plot example #####
 
-matplot(t(select(rrs, paste("Rrs_", 400:900, sep = ''))[ROW,]), ylim = c(0,0.015),
+matplot(t(select(selection, paste("Rrs_", 400:900, sep = ''))[,]), ylim = c(0,0.05),
         x= c(400:900), pch = 20, xlab = '', ylab = '')
 
 par(new=T)
 
-matplot(t(MSI[ROW,-10]), x= c(440,490,560,660,705,740,780,842,860), pch = 20,
-        ylim = c(0,0.015), xlim = c(400,900), col = 'red', cex = 2, xlab = 'Wavelength (nm)', 
+matplot(t(selection.s[,-10]), x= c(440,490,560,660,705,740,780,842,860), pch = 20,
+        ylim = c(0,0.05), xlim = c(400,900), col = 'red', cex = 2, xlab = 'Wavelength (nm)', 
         ylab = 'Rrs (sr-1)')
+
+legend('topleft', legend = c(paste("Chl-a = ", meta.s$Chla),
+                             paste("Secchi = ", meta.s$Secchi_depth)))
 
 ## Merge dataset and prepare to export ########
 
@@ -174,9 +180,8 @@ chart.Correlation(log(select(merged, c("Chla",
 ggplot(merged, aes(x = log(NDCI+1), y = log(Chla))) +
   geom_point(color = 'black') +
   scale_y_continuous(limits = c(-2,10)) +
-  scale_x_continuous(limits = c(-2,1)) +
+  scale_x_continuous(limits = c(0,1)) +
   theme_bw() + 
-  labs(color='Mesoregioes') +
   stat_poly_line() +
   stat_poly_eq(use_label(c("eq", "R2"))) +
   theme(panel.grid.major = element_line(colour = "#d3d3d3"),
@@ -197,6 +202,8 @@ vector = vect(merged,
               geom = c('Longitude', 'Latitude'), 
               "EPSG:4326")
 
+
+# plot map
 
 mapview(sf::st_as_sf(vector),  zcol = 'Chla')
 

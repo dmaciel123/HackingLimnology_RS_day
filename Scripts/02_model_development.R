@@ -53,7 +53,8 @@ summary(emp.chla)
 
 valid$NDCI_CHLA = exp(predict(emp.chla, valid))
 
-plot(valid$Chla, valid$NDCI_CHLA , xlim = c(0,400), ylim = c(0,400))
+plot(valid$Chla, valid$NDCI_CHLA , pch = 20, xlab = "Measured Chla",
+     ylab = "Predicted Chla", xlim = c(0,400), ylim = c(0,400))
 abline(0,1)
 
 
