@@ -56,7 +56,8 @@ RES = raster_cube(col, v) %>% #, mask = image_mask("SCL", values = 6, invert = T
 
 ## Load results
 
-files_saved = list.files('Outputs/TimeSeries/', full.names = T)
+files_saved = list.files(path = 'Outputs/TimeSeries/',pattern = '.tif$',
+                         full.names = T)
 
 s2.col = rast(files_saved[10])
 
@@ -108,7 +109,7 @@ for(i in 1:length(files_saved)) {
 }
 
 
-file_chla_names = list.files("Outputs/TimeSeries/RandomForest/",full.names = T) 
+file_chla_names = list.files("Outputs/TimeSeries/RandomForest/", pattern = '.tif$', full.names = T) 
 
 chla.res = file_chla_names %>% rast()
 
